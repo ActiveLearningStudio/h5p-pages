@@ -14,7 +14,7 @@
         {
           "name": "pageTitle",
           "label": "Title",
-          "type": "Text",
+          "type": "text",
           "description": "Used as a heading for the page and also in the navigation menu"
         },
         {
