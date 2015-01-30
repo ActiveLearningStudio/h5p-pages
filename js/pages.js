@@ -13,8 +13,6 @@ H5P.Pages = (function ($) {
     if (!(this instanceof H5P.Pages)) {
       return new H5P.Pages(content, contentId);
     }
-
-    H5P.QuestionContainer.call(this);
     
     var defaults = {
       pages: [],
@@ -34,10 +32,10 @@ H5P.Pages = (function ($) {
     
     // Instantiate pages
     for (var i = 0; i < this.params.pages.length; i++) {
-      var pageData = this.params.pages[i];
+      var pageData = this.params.pages[i].pageContent;
 
       // override content parameters.
-      if (this.params.override.overrideButtons) {
+      if (this.params.override && this.params.override.overrideButtons) {
         // Extend subcontent with the overrided settings.
         $.extend(pageData.params.behaviour, {
           enableRetry: this.params.override.overrideRetry,
@@ -48,9 +46,9 @@ H5P.Pages = (function ($) {
       $.extend(pageData.params, {
         postUserStatistics: false
       });
-      
       this.pages.push(H5P.newRunnable(pageData, contentId));
     }
+    H5P.QuestionContainer.call(this, this.pages, contentId);
   }
   
   C.prototype = Object.create(H5P.QuestionContainer.prototype);
@@ -63,19 +61,19 @@ H5P.Pages = (function ($) {
       answered = answered && (this.pages[i]).getAnswerGiven();
     }
 
-    if (currentPage === 0) {
-      $('.h5p-prev.h5p-button', this.$myDom).hide();
+    if (this.currentPage === 0) {
+      $('.h5p-pages-prev', this.$myDom).hide();
     } else {
-      $('.h5p-prev.h5p-button', this.$myDom).show();
+      $('.h5p-pages-prev', this.$myDom).show();
     }
-    if (currentPage === (this.pages.length - 1)) {
-      $('.h5p-next.h5p-button', this.$myDom).hide();
+    if (this.currentPage === (this.pages.length - 1)) {
+      $('.h5p-pages-next', this.$myDom).hide();
       if (answered) {
-        $('.h5p-finish.h5p-button', this.$myDom).show();
+        $('.h5p-pages-finish', this.$myDom).show();
       }
     } else {
-      $('.h5p-next.h5p-button', this.$myDom).show();
-      $('.h5p-finish.h5p-button', this.$myDom).hide();
+      $('.h5p-pages-next', this.$myDom).show();
+      $('.h5p-pages-finish', this.$myDom).hide();
     }
  };
 
@@ -84,55 +82,56 @@ H5P.Pages = (function ($) {
     if (pageNumber < 0) {
       pageNumber = 0;
     }
-    if (pageNumber >= pages.length) {
-      pageNumber = pages.length - 1;
+    if (pageNumber >= this.pages.length) {
+      pageNumber = this.pages.length - 1;
     }
 
      // Hide all pages except the one we are to show
-    $('.h5p-page-container', $myDom).hide().eq(pageNumber).show();
+    $('.h5p-page', this.$myDom).hide().eq(pageNumber).show();
 
     // Trigger resize in case the size of the new page is different from the last
-    var page = pages[pageNumber];
+    var page = this.pages[pageNumber];
     if (page.$ !== undefined) {
       page.$.trigger('resize');
     }
 
     // Update progress indicator
-    $('.progress-text', $myDom).text(params.texts.textualProgress.replace("@current", pageNumber+1).replace("@total", pages.length));
+    $('.h5p-pages-page-number', this.$myDom).text(this.params.texts.textualProgress.replace("@current", pageNumber+1).replace("@total", this.pages.length));
 
-    _updateButtons();
+    this.currentPage = pageNumber;
+    this.updateButtons();
   };
 
   C.prototype.rendered = false;
 
   C.prototype.reRender = function () {
-    rendered = false;
+    this.rendered = false;
   };
 
   C.prototype.displayEndPage = function () {
-    if (rendered) {
-      $myDom.children().hide().filter('.h5p-results').show();
+    if (this.rendered) {
+      this.$myDom.children().hide().filter('.h5p-results').show();
       return;
     }
-    rendered = true;
+    this.rendered = true;
 
     // Get total score.
     var score = getScore();
     var maxScore = totalScore();
     var scoreString = params.texts.scoreString.replace("@score", score).replace("@maxScore", maxScore);
-    var success = ((100 * score / maxScore) >= params.passPercentage);
+    var success = ((100 * score / maxScore) >= this.params.passPercentage);
     var eventData = {
       score: scoreString,
       passed: success
     };
     var displayResults = function () {
       // TODO: Replace with xAPI
-      if (params.postUserStatistics === true) {
-        H5P.setFinished(contentId, getScore(), getMaxScore());
+      if (this.params.postUserStatistics === true) {
+        H5P.setFinished(this.contentId, getScore(), getMaxScore());
       }
 
-      if (!params.endGame.showResultPage) {
-        $(returnObject).trigger('h5pPagesFinished', eventData);
+      if (!this.params.endGame.showResultPage) {
+        //$(returnObject).trigger('h5pPagesFinished', eventData);
         return;
       }
 
@@ -176,20 +175,20 @@ H5P.Pages = (function ($) {
     $myHTML.append($pagesContainer);
 
     var $navigation = $('<div class="h5p-pages-navigation"></div>');
-    var $prev = $('<a class="h5p-button h5p-back" target="#">' + this.params.texts.prevButton + '</a>')
+    var $prev = $('<a class="h5p-button h5p-pages-prev" target="#">' + this.params.texts.prevButton + '</a>')
       .click(function(e) {
         self.showPage(self.currentPage - 1);
         e.preventDefault();
       })
       .appendTo($navigation);
-    var $pageNumber = $('<span class="h5p-page-number">' + this.params.texts.textualProgress + '</span>').appendTo($navigation);
-    var $next = $('<a class="h5p-button h5p-next" target="#">' + this.params.texts.nextButton + '</a>')
+    var $pageNumber = $('<span class="h5p-pages-page-number">' + this.params.texts.textualProgress + '</span>').appendTo($navigation);
+    var $next = $('<a class="h5p-button h5p-pages-next" target="#">' + this.params.texts.nextButton + '</a>')
       .click(function(e) {
         self.showPage(self.currentPage + 1);
         e.preventDefault();
       })
       .appendTo($navigation);
-    var $finish = $('<button class="h5p-button h5p-finished">' + this.params.texts.finishButton + '</button>')
+    var $finish = $('<button class="h5p-button h5p-pages-finish">' + this.params.texts.finishButton + '</button>')
       .click(function(e) {
         self.displayEndPage();
         e.preventDefault();
