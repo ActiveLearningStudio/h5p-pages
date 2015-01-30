@@ -3,7 +3,6 @@
     "name": "pages",
     "label": "Pages",
     "type": "list",
-    "widget": "verticalTabs",
     "min": 1,
     "entity": "page",
     "field": {
