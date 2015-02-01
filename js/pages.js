@@ -172,23 +172,35 @@ H5P.Pages = (function ($) {
       $pagesContainer.append($pageContainer);
     }
     
+    $pageContainer.append('<div class="h5p-clearfix"></div>');
     $myHTML.append($pagesContainer);
 
     var $navigation = $('<div class="h5p-pages-navigation"></div>');
-    var $prev = $('<a class="h5p-button h5p-pages-prev" target="#">' + this.params.texts.prevButton + '</a>')
+    var $prev = H5P.JoubelUI.createButton({
+      'class': 'h5p-pages-prev',
+      href: '#',
+      text: this.params.texts.prevButton
+    })
       .click(function(e) {
         self.showPage(self.currentPage - 1);
         e.preventDefault();
       })
       .appendTo($navigation);
     var $pageNumber = $('<span class="h5p-pages-page-number">' + this.params.texts.textualProgress + '</span>').appendTo($navigation);
-    var $next = $('<a class="h5p-button h5p-pages-next" target="#">' + this.params.texts.nextButton + '</a>')
+    var $next = H5P.JoubelUI.createButton({
+      'class': 'h5p-pages-next',
+      href: '#',
+      text: this.params.texts.nextButton
+    })
       .click(function(e) {
         self.showPage(self.currentPage + 1);
         e.preventDefault();
       })
       .appendTo($navigation);
-    var $finish = $('<button class="h5p-button h5p-pages-finish">' + this.params.texts.finishButton + '</button>')
+    var $finish = H5P.JoubelUI.createButton({
+      'class': 'h5p-pages-finish',
+      text: this.params.texts.finishButton
+    })
       .click(function(e) {
         self.displayEndPage();
         e.preventDefault();
