@@ -35,5 +35,12 @@
       "majorVersion": 1,
       "minorVersion": 0
     }
+  ],
+  "editorDependencies": [
+    {
+      "machineName": "H5PEditor.HierarchicList",
+      "majorVersion": 1,
+      "minorVersion": 0
+    }
   ]
 }
